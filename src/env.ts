@@ -8,6 +8,7 @@ export const env = createEnv({
     NEXTAUTH_URL: z.string().url(),
     NEXTAUTH_SECRET: z.string().min(1),
     DATABASE_URL: z.string().url(),
+    STRIPE_SECRET_KEY: z.string().min(1),
   },
 
   /**
@@ -16,7 +17,9 @@ export const env = createEnv({
    */
   clientPrefix: "NEXT_PUBLIC",
 
-  client: {},
+  client: {
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1),
+  },
 
   /**
    * What object holds the environment variables at runtime. This is usually

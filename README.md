@@ -11,3 +11,4 @@
 - [x] Toast notifications with React-hot-toast
 - [x] Typesafe env variables with T3 Env
 - [x] Type validation with Zod
+- [ ] Payment handling with Stripe
