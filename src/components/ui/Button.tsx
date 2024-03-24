@@ -10,15 +10,15 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "dark:bg-slate-100 dark:text-slate-700 dark:hover:bg-slate-300 bg-slate-900 text-slate-300 hover:bg-slate-800",
-        ghost:
-          "bg-transparent dark:text-slate-200 dark:hover:text-slate-300 dark:hover:bg-slate-800 text-slate-800 hover:text-slate-700 hover:bg-slate-200",
-        dangerous:
-          "bg-red-600 text-white hover:bg-red-500 dark:bg-red-700 dark:hover:bg-red-600",
-        good: "bg-green-600 text-white hover:bg-green-500 dark:bg-green-700 dark:hover:bg-green-600",
-        brand:
-          "bg-violet-500 dark:bg-violet-600 text-white hover:bg-violet-400 dark:hover:bg-violet-500",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 py-2 px-4",
@@ -31,7 +31,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 export interface ButtonProps
@@ -55,7 +55,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ) : null}
       </button>
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

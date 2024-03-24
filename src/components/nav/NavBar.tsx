@@ -23,13 +23,13 @@ export default async function Navbar() {
 
   return (
     <>
-      <nav className="hidden md:flex px-16 w-full gap-x-10 items-center">
+      <nav className="hidden w-full items-center gap-x-10 px-16 md:flex">
         <span className="font-semibold">AppName</span>
         {navOptions.map((option) => (
           <Link
             key={option.href}
             href={option.href}
-            className="font-medium text-foreground/70 hover:text-foreground/100 transition-colors duration-200"
+            className="font-medium text-foreground/70 transition-colors duration-200 hover:text-foreground/100"
           >
             {option.name}
           </Link>
@@ -46,7 +46,7 @@ export default async function Navbar() {
         </div>
       </nav>
       {/* Mobile navbar */}
-      <div className="md:hidden ml-auto">
+      <div className="ml-auto md:hidden">
         <Sheet>
           <SheetTrigger>
             <Menu className="text-foreground" />

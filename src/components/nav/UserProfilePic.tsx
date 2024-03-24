@@ -1,8 +1,5 @@
 import { getCurrentUser } from "@/lib/session";
 import Image from "next/image";
-import LogoutButton from "@/components/nav/LogoutButton";
-import LoginButton from "@/components/nav/LoginButton";
-import Link from "next/link";
 
 async function UserProfilePic() {
   const user = await getCurrentUser();
