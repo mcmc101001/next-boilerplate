@@ -24,7 +24,9 @@ export default async function Navbar() {
   return (
     <>
       <nav className="hidden w-full items-center gap-x-10 px-16 md:flex">
-        <span className="font-semibold">AppName</span>
+        <Link href="/">
+          <span className="font-semibold">AppName</span>
+        </Link>
         {navOptions.map((option) => (
           <Link
             key={option.href}

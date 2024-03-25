@@ -6,7 +6,6 @@ import { authOptions } from "@/lib/auth";
 import { isValidBody } from "@/lib/utils";
 import Stripe from "stripe";
 
-// This is your test secret API key.
 const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
 const orderSchema = z.object({
@@ -35,6 +34,10 @@ export default async function handler(
 
   const { price_id } = req.body;
 
+  const stripeMetadata: sessionMetadata = {
+    user_id: session.user.id,
+  };
+
   try {
     const stripeSession = await stripe.checkout.sessions.create({
       line_items: [
@@ -44,8 +47,10 @@ export default async function handler(
         },
       ],
       mode: "payment",
-      success_url: "http://localhost:3000",
+      customer_creation: "always",
+      success_url: "http://localhost:3000/success/{CHECKOUT_SESSION_ID}",
       cancel_url: "http://localhost:3000",
+      metadata: stripeMetadata,
     });
     if (!stripeSession.url) {
       res.status(500).json("Error with Stripe checkout session creation.");
