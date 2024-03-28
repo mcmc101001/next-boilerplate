@@ -81,7 +81,7 @@ export default async function handler(
     const credits = lineItems ? calculateOrder(lineItems) : 0;
     const userId = metadata.user_id;
 
-    const user = await prisma.user.update({
+    await prisma.user.update({
       where: {
         id: userId,
       },

@@ -27,7 +27,7 @@ const cards: Card[] = [
   },
   {
     title: "Enterprise",
-    description: "50 credits",
+    description: "30 credits",
     price: "$10.00",
     price_id: "price_1OxrENP6F5ZxroDXle1bu1t4",
   },
