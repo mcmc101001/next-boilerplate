@@ -68,30 +68,115 @@ export default async function handler(
     return;
   }
 
-  if (event.type === "checkout.session.completed") {
-    const sessionWithItems = await stripe.checkout.sessions.retrieve(
-      event.data.object.id,
-      {
-        expand: ["line_items"],
-      },
-    );
+  let subscription: Stripe.Subscription;
+  let status: Stripe.Subscription.Status;
+  let metadata: sessionMetadata;
+  let customerId: string;
 
-    const metadata = sessionWithItems.metadata as sessionMetadata;
-    const lineItems = sessionWithItems.line_items;
-    const credits = lineItems ? calculateOrder(lineItems) : 0;
-    const userId = metadata.user_id;
-
-    await prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        credits: {
-          increment: credits,
+  switch (event.type) {
+    case "checkout.session.completed":
+      const sessionWithItems = await stripe.checkout.sessions.retrieve(
+        event.data.object.id,
+        {
+          expand: ["line_items"],
         },
-      },
-    });
-  }
+      );
 
+      if (sessionWithItems.mode === "subscription") {
+        break;
+      }
+
+      metadata = sessionWithItems.metadata as sessionMetadata;
+      const lineItems = sessionWithItems.line_items;
+      const credits = lineItems ? calculateOrder(lineItems) : 0;
+      const userId = metadata.user_id;
+
+      await prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          credits: {
+            increment: credits,
+          },
+        },
+      });
+      break;
+
+    case "customer.subscription.deleted":
+      subscription = event.data.object;
+      status = subscription.status;
+      metadata = subscription.metadata as sessionMetadata;
+
+      await prisma.user.update({
+        where: {
+          id: metadata.user_id,
+        },
+        data: {
+          subscribed: false,
+        },
+      });
+
+      // Then define and call a method to handle the subscription deleted.
+      // handleSubscriptionDeleted(subscriptionDeleted);
+      break;
+
+    case "customer.subscription.created":
+      subscription = event.data.object;
+      status = subscription.status;
+      metadata = subscription.metadata as sessionMetadata;
+      customerId = subscription.customer as string;
+
+      if (status === "active" || status === "trialing") {
+        await prisma.user.update({
+          where: {
+            id: metadata.user_id,
+          },
+          data: {
+            subscribed: true,
+            stripeCustomerId: customerId,
+          },
+        });
+      }
+      break;
+
+    case "customer.subscription.updated":
+      subscription = event.data.object;
+      status = subscription.status;
+      metadata = subscription.metadata as sessionMetadata;
+      customerId = subscription.customer as string;
+
+      if (
+        status === "canceled" ||
+        status === "unpaid" ||
+        status === "incomplete" ||
+        status === "incomplete_expired" ||
+        status === "past_due" ||
+        status === "paused"
+      ) {
+        await prisma.user.update({
+          where: {
+            id: metadata.user_id,
+          },
+          data: {
+            subscribed: false,
+          },
+        });
+      } else if (status === "active") {
+        await prisma.user.update({
+          where: {
+            id: metadata.user_id,
+          },
+          data: {
+            subscribed: true,
+            stripeCustomerId: customerId,
+          },
+        });
+      }
+      break;
+
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
   res.status(200).end();
 }

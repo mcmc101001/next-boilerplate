@@ -3,13 +3,16 @@
 import { motion, useMotionValue, useMotionTemplate } from "framer-motion";
 import type { MouseEvent } from "react";
 import Button from "../ui/Button";
-import { orderType } from "@/pages/api/checkout_session";
+import { orderType } from "@/pages/api/checkout-session";
 
 type Card = {
   title: string;
   description: string;
   price: string;
   price_id: string;
+  type: "payment" | "subscription";
+  subscriptionDuration?: string;
+  callToAction?: string;
 };
 
 const cards: Card[] = [
@@ -18,18 +21,23 @@ const cards: Card[] = [
     description: "10 credits",
     price: "$5.00",
     price_id: "price_1Oxr5YP6F5ZxroDXeKGPIFlY",
+    type: "payment",
   },
   {
     title: "Pro",
     description: "30 credits",
     price: "$10.00",
     price_id: "price_1OxrENP6F5ZxroDXle1bu1t4",
+    type: "payment",
   },
   {
-    title: "Enterprise",
-    description: "30 credits",
-    price: "$10.00",
-    price_id: "price_1OxrENP6F5ZxroDXle1bu1t4",
+    title: "Pro membership",
+    description: "Pro plan on a subscription basis",
+    price: "$20.00",
+    price_id: "price_1P00MQP6F5ZxroDXnSspxq4x",
+    subscriptionDuration: "month",
+    callToAction: "Subscribe",
+    type: "subscription",
   },
 ];
 
@@ -48,7 +56,15 @@ interface CardProps {
 }
 
 function Card({ card }: CardProps) {
-  const { title, description, price, price_id } = card;
+  const {
+    title,
+    description,
+    price,
+    price_id,
+    subscriptionDuration,
+    callToAction,
+    type,
+  } = card;
 
   let mouseX = useMotionValue(0);
   let mouseY = useMotionValue(0);
@@ -63,8 +79,9 @@ function Card({ card }: CardProps) {
   async function handlePayment() {
     const order: orderType = {
       price_id: price_id,
+      type: type,
     };
-    const response = await fetch("/api/checkout_session", {
+    const response = await fetch("/api/checkout-session", {
       method: "POST",
       body: JSON.stringify(order),
       headers: {
@@ -88,7 +105,15 @@ function Card({ card }: CardProps) {
       />
       <div className="flex h-full w-full flex-col gap-y-3">
         <h1 className="mt-2 text-2xl font-medium md:text-3xl">{title}</h1>
-        <p className="text-3xl font-semibold md:text-4xl">{price}</p>
+        <p className="text-3xl font-semibold md:text-4xl">
+          {price}
+          {subscriptionDuration && (
+            <span className="text-lg md:text-xl">
+              {" "}
+              per {subscriptionDuration}
+            </span>
+          )}
+        </p>
         <p className="text-sm text-card-foreground/70 md:text-base">
           {description}
         </p>
@@ -97,7 +122,7 @@ function Card({ card }: CardProps) {
           className="mt-auto w-full text-sm md:text-lg"
           onClick={handlePayment}
         >
-          Checkout
+          {callToAction ? callToAction : "Checkout"}
         </Button>
       </div>
     </div>

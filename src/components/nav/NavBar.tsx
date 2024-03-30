@@ -9,6 +9,7 @@ import LogoutText from "@/components/nav/LogoutText";
 import LoginButton from "./LoginButton";
 import { prisma } from "@/lib/prisma";
 import RefreshButton from "../RefreshButton";
+import { Badge } from "@/components/ui/badge";
 
 export const navOptions: Array<{
   name: string;
@@ -29,6 +30,7 @@ export const navOptions: Array<{
 export default async function Navbar() {
   const user = await getCurrentUser();
   let credits: null | number | undefined = null;
+  let isSubscribed: boolean | undefined = false;
 
   if (user) {
     const prismaUser = await prisma.user.findUnique({
@@ -37,6 +39,7 @@ export default async function Navbar() {
       },
     });
     credits = prismaUser?.credits;
+    isSubscribed = prismaUser?.subscribed;
   }
 
   return (
@@ -65,6 +68,7 @@ export default async function Navbar() {
             <div className="flex items-center gap-4">
               <RefreshButton />
               <span className="text-lg font-medium">{credits} credits</span>
+              {isSubscribed && <Badge variant="default">Pro</Badge>}
               <UserProfilePic />
               <LogoutButton />
             </div>

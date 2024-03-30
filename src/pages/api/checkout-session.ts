@@ -10,6 +10,7 @@ const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
 const orderSchema = z.object({
   price_id: z.string(),
+  type: z.union([z.literal("payment"), z.literal("subscription")]),
 });
 
 export type orderType = z.infer<typeof orderSchema>;
@@ -32,32 +33,54 @@ export default async function handler(
     return res.status(400).json({ message: "Invalid request body" });
   }
 
-  const { price_id } = req.body;
+  const { price_id, type } = req.body;
 
   const stripeMetadata: sessionMetadata = {
     user_id: session.user.id,
   };
 
   try {
-    const stripeSession = await stripe.checkout.sessions.create({
-      line_items: [
-        {
-          price: `${price_id}`,
-          quantity: 1,
+    let stripeSession: Stripe.Checkout.Session;
+    if (type === "subscription") {
+      stripeSession = await stripe.checkout.sessions.create({
+        line_items: [
+          {
+            price: `${price_id}`,
+            quantity: 1,
+          },
+        ],
+        mode: "subscription",
+        success_url: "http://localhost:3000/success/{CHECKOUT_SESSION_ID}",
+        cancel_url: "http://localhost:3000",
+        subscription_data: {
+          metadata: stripeMetadata,
         },
-      ],
-      mode: "payment",
-      customer_creation: "always",
-      success_url: "http://localhost:3000/success/{CHECKOUT_SESSION_ID}",
-      cancel_url: "http://localhost:3000",
-      metadata: stripeMetadata,
-    });
+      });
+    } else if (type === "payment") {
+      stripeSession = await stripe.checkout.sessions.create({
+        line_items: [
+          {
+            price: `${price_id}`,
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        customer_creation: "always",
+        success_url: "http://localhost:3000/success/{CHECKOUT_SESSION_ID}",
+        cancel_url: "http://localhost:3000",
+        metadata: stripeMetadata,
+      });
+    } else {
+      res.status(400).json("Order type not supported in API.");
+      return;
+    }
     if (!stripeSession.url) {
       res.status(500).json("Error with Stripe checkout session creation.");
     } else {
       res.json({ url: stripeSession.url });
     }
   } catch (error) {
+    console.log(error);
     res.status(500).json("Error with Stripe checkout session creation.");
   }
 }
